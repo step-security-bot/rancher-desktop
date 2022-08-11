@@ -76,7 +76,7 @@ async function runAgainstContainerEngine(containerClient: string, imageName: str
 }
 
 describe('Web page test', () => {
-  let actualIt = it;
+  let skipTests = false;
   let containerEngine: ContainerEngine;
   let otherEngineName: string;
   let containerClient: string;
@@ -92,11 +92,14 @@ describe('Web page test', () => {
       [containerClient, otherContainerClient, otherEngineName] = containerEngine === ContainerEngine.CONTAINERD ? ['nerdctl', 'docker', 'moby'] : ['docker', 'nerdctl', 'containerd'];
     } catch (e) {
       console.error(`Need to run rancher-desktop first`, e);
-      actualIt = it.skip;
+      skipTests = true;
     }
   });
 
-  actualIt('fetches text from well-known web pages', async() => {
+  it('fetches text from well-known web pages', async() => {
+    if (skipTests) {
+      return;
+    }
     let response = await fetch('https://www.github.com/');
 
     expect(response.ok).toBeTruthy();
@@ -108,13 +111,19 @@ describe('Web page test', () => {
     expect(await response.text()).toMatch(/<title>.*?Microsoft/i);
   });
 
-  actualIt('pushes and tests rancher/rancher with the first engine', async() => {
+  it('pushes and tests rancher/rancher with the first engine', async() => {
     // const imageName: 'nginx'|'rancher/rancher' = 'rancher/rancher';
     // let imageName: 'nginx' | 'rancher/rancher' = 'nginx';
+    if (skipTests) {
+      return;
+    }
     await runAgainstContainerEngine(containerClient, 'rancher/rancher');
   });
 
-  actualIt('switches the containerEngine', async() => {
+  it('switches the containerEngine', async() => {
+    if (skipTests) {
+      return;
+    }
     await tool('rdctl', 'set', '--container-engine', otherEngineName);
     await childProcess.spawnFile('sleep', ['10']);
     let i = 0;
@@ -133,7 +142,10 @@ describe('Web page test', () => {
     }
   });
 
-  actualIt('pushes and tests rancher/rancher with the second engine', async() => {
+  it('pushes and tests rancher/rancher with the second engine', async() => {
+    if (skipTests) {
+      return;
+    }
     await runAgainstContainerEngine(otherContainerClient, 'rancher/rancher');
   });
 });
