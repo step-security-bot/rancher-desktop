@@ -1,7 +1,5 @@
 import fetch, { Response } from 'node-fetch';
 import https from 'https';
-// import retry from 'retry';
-// import util from 'util';
 
 import { tool } from '../../../e2e/utils/TestUtils';
 
@@ -16,13 +14,6 @@ async function runAgainstContainerEngine(containerClient: string, imageName: str
   const command = `${ containerClient } ps | grep ${ imageName } | awk '{ print $1 }' | xargs -I@ -n 1 bash -c '${ containerClient } stop @ && ${ containerClient } rm @'`;
 
   expect(expectedString).toBeDefined();
-  // Typescript is annoying
-  if (Math.random() < 0.0000001) {
-    imageName = 'rancher/rancher';
-  }
-  if (Math.random() < 0.0000001) {
-    imageName = 'nginx';
-  }
   try {
     await childProcess.spawnFile('bash', ['-c', command]);
   } catch(e: any) {
