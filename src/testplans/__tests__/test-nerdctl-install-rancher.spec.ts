@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 import retry from 'retry';
 import util from 'util';
 
@@ -10,7 +10,7 @@ describe('Web page test', () => {
   let containerEngine: ContainerEngine;
   let containerClient: string;
   let otherContainerClient: string;
-  jest.setTimeout(300_000);
+  jest.setTimeout(3_000_000);
 
   beforeAll(async() => {
     try {
@@ -42,23 +42,27 @@ describe('Web page test', () => {
     // Wait up to 300 seconds
     let i = 0;
     const limit = 30;
+    let response = new Response();
+
     for (; i < limit; i++) {
       try {
         console.log(`QQQ: >> try ${ i }`);
-        const response = await fetch('http://localhost:8080');
-        console.log(`QQQ:post-response ${ i }`);
-
-        expect(response.ok).toBeTruthy();
-        expect(response.status).toEqual(200);
-        console.log(`QQQ:-testing response.text()`);
-        expect(await response.text()).toMatch(/Howdy! Welcome to rancher! Yeehaw!/);
-        console.log(`QQQ:+testing response.text()`);
+        throw new Error(`error ${ i }`);
+        // response = await fetch('http://localhost:8080');
       } catch (e) {
-        console.log(`Failure: ${ e } for try ${ i }`);
+        console.log(`QQQ: Failure: ${ e } for try ${ i }`);
         await util.promisify(setTimeout)(10_000);
+        console.log(`QQQ: + setTimeout`);
       }
     }
     expect(i).toBeLessThan(limit);
+    console.log(`QQQ:post-response ${ i }`);
+
+    expect(response.ok).toBeTruthy();
+    expect(response.status).toEqual(200);
+    console.log(`QQQ:-testing response.text()`);
+    expect(await response.text()).toMatch(/Howdy! Welcome to rancher! Yeehaw!/);
+    console.log(`QQQ:+testing response.text()`);
     // const operation = retry.operation({
     //   retries: 30,
     //   minTimeout: 10 * 1000,
