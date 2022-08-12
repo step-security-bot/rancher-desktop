@@ -1,10 +1,20 @@
 import fetch, { Response } from 'node-fetch';
 import https from 'https';
+import util from 'util';
 
 import { tool } from '../../../e2e/utils/TestUtils';
 
 import { ContainerEngine } from '@/config/settings';
 import * as childProcess from '@/utils/childProcess';
+
+async function sleepItOff(timeInSeconds: number, forceSpawn=false) {
+  // For some reason this doesn't always work:
+  // if (!forceSpawn) {
+  //   await util.promisify(setTimeout)(timeInSeconds * 1_000);
+  //   return false;
+  // }
+  await childProcess.spawnFile('sleep', [timeInSeconds.toString()]);
+}
 
 async function runAgainstContainerEngine(containerClient: string, imageName: string) {
   const expectedString = {
@@ -45,18 +55,14 @@ async function runAgainstContainerEngine(containerClient: string, imageName: str
         break;
       } catch (e) {
         console.log(`Failure: ${ e } for try ${ i }`);
-        // For some reason this doesn't work:
-        // await util.promisify(setTimeout)(10_000);
-        // so call sleep ...
-        await childProcess.spawnFile('sleep', ['10']);
+        await sleepItOff(10);
       }
     }
     expect(i).toBeLessThan(limit);
 
     if (!response.ok || response.status >= 400) {
       console.log(`2nd-round Failure: try ${ i }: ${ response.ok }, status: ${ response.status }`);
-      // await util.promisify(setTimeout)(10_000);
-      await childProcess.spawnFile('sleep', ['10']);
+      await sleepItOff(10);
       i += 1;
       continue;
     }
@@ -114,9 +120,7 @@ describe('Web page test', () => {
         await tool(otherContainerClient, 'ps');
         break;
       } catch (e) {
-        // For some reason this doesn't rwork:
-        // await util.promisify(setTimeout)(10_000);
-        await childProcess.spawnFile('sleep', ['10']);
+        await sleepItOff(10);
       }
     }
   });
@@ -148,9 +152,7 @@ describe('Web page test', () => {
         await tool(otherContainerClient, 'ps');
         break;
       } catch (e) {
-        // For some reason this doesn't rwork:
-        // await util.promisify(setTimeout)(10_000);
-        await childProcess.spawnFile('sleep', ['10']);
+        await sleepItOff(10);
       }
     }
   });
@@ -179,9 +181,7 @@ describe('Web page test', () => {
         await tool(otherContainerClient, 'ps');
         break;
       } catch (e) {
-        // For some reason this doesn't rwork:
-        // await util.promisify(setTimeout)(10_000);
-        await childProcess.spawnFile('sleep', ['10']);
+        await sleepItOff(10);
       }
     }
   });
