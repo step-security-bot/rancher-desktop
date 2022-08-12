@@ -72,34 +72,22 @@ describe('Web page test', () => {
   let otherEngineName: string;
   let containerClient: string;
   let otherContainerClient: string;
+  let kubernetesStatus: boolean;
   jest.setTimeout(3_000_000);
 
   beforeAll(async() => {
     try {
       const stdout = await tool('rdctl', 'list-settings');
+      const settings = JSON.parse(stdout);
 
-      containerEngine = JSON.parse(stdout).kubernetes.containerEngine;
+      containerEngine = settings.kubernetes.containerEngine;
+      kubernetesStatus = settings.kubernetes.enabled;
       expect(containerEngine).not.toBe(ContainerEngine.NONE);
       [containerClient, otherContainerClient, otherEngineName] = containerEngine === ContainerEngine.CONTAINERD ? ['nerdctl', 'docker', 'moby'] : ['docker', 'nerdctl', 'containerd'];
     } catch (e) {
       console.error(`Need to run rancher-desktop first`, e);
       skipTests = true;
     }
-  });
-
-  it('fetches text from well-known web pages', async() => {
-    if (skipTests) {
-      return;
-    }
-    let response = await fetch('https://www.github.com/');
-
-    expect(response.ok).toBeTruthy();
-    expect(response.status).toEqual(200);
-    expect(await response.text()).toMatch(/<title>.*?GitHub/i);
-    response = await fetch('https://www.microsoft.com/');
-    expect(response.ok).toBeTruthy();
-    expect(response.status).toEqual(200);
-    expect(await response.text()).toMatch(/<title>.*?Microsoft/i);
   });
 
   it('pushes and tests rancher/rancher with the first engine', async() => {
@@ -138,5 +126,70 @@ describe('Web page test', () => {
       return;
     }
     await runAgainstContainerEngine(otherContainerClient, 'rancher/rancher');
+  });
+
+  it('flips kubernetes status', async() => {
+    if (skipTests) {
+      return;
+    }
+    const stdout = await tool('rdctl', 'list-settings');
+    const settings = JSON.parse(stdout);
+
+    const containerEngine = settings.kubernetes.containerEngine;
+    const containerClient = containerEngine === ContainerEngine.CONTAINERD ? 'nerdctl' : 'docker';
+    await tool('rdctl', 'set', `--kubernetes-enabled=${ !kubernetesStatus }`);
+    await childProcess.spawnFile('sleep', ['10']);
+    let i = 0;
+    const limit = 60;
+
+    // Just wait for the container engine to come up before continuing
+    for (; i < limit; i++) {
+      try {
+        await tool(otherContainerClient, 'ps');
+        break;
+      } catch (e) {
+        // For some reason this doesn't rwork:
+        // await util.promisify(setTimeout)(10_000);
+        await childProcess.spawnFile('sleep', ['10']);
+      }
+    }
+  });
+
+  it('pushes and tests rancher/rancher with other container-client and opposite kubernetes status', async() => {
+    // const imageName: 'nginx'|'rancher/rancher' = 'rancher/rancher';
+    // let imageName: 'nginx' | 'rancher/rancher' = 'nginx';
+    if (skipTests) {
+      return;
+    }
+    await runAgainstContainerEngine(otherContainerClient, 'rancher/rancher');
+  });
+
+  it('switches the containerEngine', async() => {
+    if (skipTests) {
+      return;
+    }
+    await tool('rdctl', 'set', '--container-engine', containerEngine.toString());
+    await childProcess.spawnFile('sleep', ['10']);
+    let i = 0;
+    const limit = 60;
+
+    // Just wait for the container engine to come up before continuing
+    for (; i < limit; i++) {
+      try {
+        await tool(otherContainerClient, 'ps');
+        break;
+      } catch (e) {
+        // For some reason this doesn't rwork:
+        // await util.promisify(setTimeout)(10_000);
+        await childProcess.spawnFile('sleep', ['10']);
+      }
+    }
+  });
+
+  it('pushes and tests rancher/rancher with the first engine and opposite kubernetes status', async() => {
+    if (skipTests) {
+      return;
+    }
+    await runAgainstContainerEngine(containerClient, 'rancher/rancher');
   });
 });
