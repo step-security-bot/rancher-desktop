@@ -4,7 +4,8 @@
   -
   - This file is a Mustache template that is rendered via installer-win32.ts.
   -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+  xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension">
   <Product
     Id="*"
     Name="Rancher Desktop"
@@ -150,6 +151,38 @@
         Value="[APPLICATIONFOLDER]resources\resources\linux\bin\" />
     </Component>
 
+
+    <!-- Add Admin install registry element -->
+    <Component Id="AdminInstallRegistry" Directory="APPLICATIONFOLDER">
+      <Condition>
+      <![CDATA[MSIINSTALLPERUSER <> 1]]>
+      </Condition>
+      <RegistryValue
+        Root="HKLM"
+        Key='SOFTWARE\SUSE\RancherDesktop'
+        Name="AdminInstall"
+        Value="yes"
+        Type="string"
+        KeyPath="yes"
+      />
+    </Component>
+
+    <!-- Add FirewallException element -->
+    <Component Id="AdminInstallFirewall" Directory="APPLICATIONFOLDER">
+      <Condition>
+      <![CDATA[MSIINSTALLPERUSER <> 1]]>
+      </Condition>
+      <fire:FirewallException
+        Id="HostSwitchFirewallException"
+        Name="host-switch.exe Exception"
+        Description="host-switch.exe All Profile Exception"
+        Program="[APPLICATIONFOLDER]resources\resources\win32\internal\host-switch.exe"
+        Profile="all"
+        Scope="any"
+        RemoteAddresses="*"
+        Protocol="tcp" />
+    </Component>
+
     <!-- If required, run the app after install (for updates) -->
     <Property Id="RDRUNAFTERINSTALL" Secure="yes" />
     <CustomAction
@@ -170,7 +203,6 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef Id="PathUser" />
       <ComponentRef Id="PathSystem" />
+      <ComponentRef Id="AdminInstallRegistry" />
     </Feature>
-  </Product>
-  {{ &fileList }}
-</Wix>
+  </Product> {{ &fileList }} </Wix>

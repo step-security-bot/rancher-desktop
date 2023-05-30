@@ -103,6 +103,7 @@ export default async function buildInstaller(workDir: string, appDir: string, de
     `-dWixUIDialogBmp=${ path.join(appDir, 'build', 'wix', 'dlgbmp.png') }`,
     '-ext', 'WixUIExtension',
     '-ext', 'WixUtilExtension',
+    '-ext', 'WixFirewallExtension',
     '-nologo',
     '-out', outFile,
     '-pedantic',
