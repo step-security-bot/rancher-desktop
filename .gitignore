@@ -23,8 +23,3 @@
 /bats/bin/
 /bats/bats.tar.gz
 /bats/logs/
-bats/bats-file/
-resources/preload.js
-resources/preload.js.map
-resources/rdx-proxy.tgz
-src/go/rdctl/pkg/options/

@@ -39,6 +39,7 @@ import { spawnFile } from '@pkg/utils/childProcess';
 import getCommandLineArgs from '@pkg/utils/commandLine';
 import DockerDirManager from '@pkg/utils/dockerDirManager';
 import { isDevEnv } from '@pkg/utils/environment';
+import { setupAltLima } from '@pkg/utils/limadirs';
 import Logging, { setLogLevel, clearLoggingDirectory } from '@pkg/utils/logging';
 import { fetchMacOsVersion, getMacOsVersion } from '@pkg/utils/osVersion';
 import paths from '@pkg/utils/paths';
@@ -284,6 +285,7 @@ Electron.app.whenReady().then(async() => {
           throw error;
         }
       }
+      setupAltLima(paths.lima);
     }
 
     diagnostics.runChecks().catch(console.error);

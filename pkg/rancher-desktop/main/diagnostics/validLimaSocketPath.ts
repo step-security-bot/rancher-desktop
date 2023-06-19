@@ -2,6 +2,7 @@ import os from 'os';
 import path from 'path';
 
 import mainEvents from '@pkg/main/mainEvents';
+import { maxSocketSize, socketPathTooLong } from '@pkg/utils/limadirs';
 import Logging from '@pkg/utils/logging';
 import paths from '@pkg/utils/paths';
 
@@ -22,9 +23,8 @@ const ValidLimaSocketPathChecker: DiagnosticsChecker = {
   check(): Promise<DiagnosticsCheckerResult> {
     const limaDirPath = paths.lima;
     const limaFullPath = path.join(limaDirPath, '0', 'ssh.sock.1234567890123456');
-    const maxSizes = { darwin: 104, linux: 106 };
-    const platformMaxSize = maxSizes[os.platform() as 'darwin'|'linux'];
-    const passed = limaFullPath.length <= platformMaxSize;
+    const passed = !socketPathTooLong(limaFullPath);
+    const platformMaxSize = maxSocketSize();
     let description = 'Unknown issue determining valid lima path length.';
 
     console.debug(`${ this.id }: using lima path of ${ limaFullPath.length }, max is ${ platformMaxSize }`);
