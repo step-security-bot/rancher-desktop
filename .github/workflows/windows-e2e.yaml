@@ -1,9 +1,10 @@
 name: e2e tests on Windows
 
 on:
-  schedule:
-    - cron: '13 5 * * 1-5'
-  workflow_dispatch: {}
+  #schedule:
+  #  - cron: '13 5 * * 1-5'
+  #workflow_dispatch: {}
+  push: {}
 defaults:
   run:
     shell: powershell
@@ -27,6 +28,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+      - name: Install yarn
+        run: npm install --global yarn
+      #Then install node again to get cache
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
           cache: yarn
       - uses: actions/setup-go@v4
         with:
@@ -36,6 +43,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Run e2e Tests
+        continue-on-error: false
         run: yarn test:e2e
         env:
           RD_DEBUG_ENABLED: '1'
