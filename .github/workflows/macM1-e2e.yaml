@@ -9,7 +9,7 @@ jobs:
 
   e2e-tests:
     timeout-minutes: 45
-    runs-on: [self-hosted, macos-latest, arm64]
+    runs-on: [self-hosted, macOS, arm64]
     env:
       M1: 1
     steps:
