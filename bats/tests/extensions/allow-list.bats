@@ -23,7 +23,6 @@ write_allow_list() { # list
     # schema; we should rely on migrations instead.
     # TODO TODO TODO
     rdctl api /v1/settings --input - <<<'{
-        "version": '"$(get_setting .version)"',
         "application": {
             "extensions": {
                 "allowed": {

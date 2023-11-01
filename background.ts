@@ -1237,7 +1237,8 @@ class BackgroundCommandWorker implements CommandWorkerInterface {
    * @param newSettings: a subset of the Settings object, containing the desired values
    * @returns [{string} description of final state if no error, {string} error message]
    */
-  async updateSettings(context: CommandWorkerInterface.CommandContext, newSettings: RecursivePartial<settings.Settings>): Promise<[string, string]> {
+  async updateSettings(context: CommandWorkerInterface.CommandContext, specifiedNewSettings: RecursivePartial<settings.Settings>): Promise<[string, string]> {
+    const newSettings = settingsImpl.migrateSpecifiedSettingsToCurrentVersion(specifiedNewSettings);
     const [needToUpdate, errors] = await this.validateSettings(cfg, newSettings);
 
     if (newSettings.version !== settings.CURRENT_SETTINGS_VERSION) {

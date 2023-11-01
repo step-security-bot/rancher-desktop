@@ -75,7 +75,7 @@ export default class SettingsValidator {
     this.lockedSettings = lockedSettings;
     this.isFatal = false;
     this.allowedSettings ||= {
-      version:     this.checkUnchanged,
+      version:     this.checkNumber(1, Number.POSITIVE_INFINITY),
       application: {
         adminAccess: this.checkLima(this.checkBoolean),
         debug:       this.checkBoolean,

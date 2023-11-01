@@ -33,14 +33,14 @@ import {
 } from './utils/TestUtils';
 
 import {
-  ContainerEngine,
-  Settings,
-  defaultSettings,
-  CURRENT_SETTINGS_VERSION,
-  MountType,
   CacheMode,
+  ContainerEngine,
+  CURRENT_SETTINGS_VERSION,
+  defaultSettings,
+  MountType,
   ProtocolVersion,
   SecurityModel,
+  Settings,
   VMType,
 } from '@pkg/config/settings';
 import { PathManagementStrategy } from '@pkg/integrations/pathManager';
@@ -308,28 +308,28 @@ test.describe('Command server', () => {
     expect(resp.ok).toBeTruthy();
     const telemetry = (await resp.json() as Settings).application.telemetry.enabled;
 
-    resp = await doRequest('/v1/settings', JSON.stringify({ version: CURRENT_SETTINGS_VERSION, application: { telemetry: { enabled: !telemetry } } }), 'PUT');
+    resp = await doRequest('/v1/settings', JSON.stringify({ application: { telemetry: { enabled: !telemetry } } }), 'PUT');
     expect(resp.ok).toBeTruthy();
     await expect(resp.text()).resolves.toContain('no restart required');
   });
 
-  test('should complain about a missing version field', async() => {
+  test('should complain about an impossible version field', async() => {
     let resp = await doRequest('/v1/settings');
 
     expect(resp.ok).toBeTruthy();
 
     const body: RecursivePartial<Settings> = await resp.json();
 
-    delete body.version;
+    body.version = CURRENT_SETTINGS_VERSION + 1 as typeof CURRENT_SETTINGS_VERSION;
     if (body?.application?.telemetry) {
       body.application.telemetry.enabled = !body.application.telemetry.enabled;
     }
     resp = await doRequest('/v1/settings', JSON.stringify(body), 'PUT');
     expect(resp.ok).toBeFalsy();
-    await expect(resp.text()).resolves.toContain(`updating settings requires specifying version = ${ CURRENT_SETTINGS_VERSION }, but no version was specified`);
+    await expect(resp.text()).resolves.toContain(`updating settings requires specifying version = ${ CURRENT_SETTINGS_VERSION }, but received version ${ CURRENT_SETTINGS_VERSION + 1 }`);
   });
 
-  test('should complain about an invalid version field', async() => {
+  test('should allow an earlier version field', async() => {
     let resp = await doRequest('/v1/settings');
 
     expect(resp.ok).toBeTruthy();
@@ -338,13 +338,12 @@ test.describe('Command server', () => {
 
     // Override typescript's checking so we can verify that the server rejects the
     // invalid value for the `version` field.
-    body.version = (body.version ? body.version - 1 : -1) as any;
+    body.version = 1 as typeof CURRENT_SETTINGS_VERSION;
     if (body?.application?.telemetry) {
       body.application.telemetry.enabled = !body.application.telemetry.enabled;
     }
     resp = await doRequest('/v1/settings', JSON.stringify(body), 'PUT');
-    expect(resp.ok).toBeFalsy();
-    await expect(resp.text()).resolves.toContain(`updating settings requires specifying version = ${ CURRENT_SETTINGS_VERSION }, but received version ${ CURRENT_SETTINGS_VERSION - 1 }`);
+    expect(resp.ok).toBeTruthy();
   });
 
   test('should require authentication, transient settings request', async() => {
@@ -945,7 +944,7 @@ test.describe('Command server', () => {
         }
       });
 
-      test.describe('complains when unrecognized option are given', () => {
+      test.describe('complains when unrecognized options are given', () => {
         for (const cmd of ['set', 'list-settings', 'shutdown']) {
           const args = [cmd, '--Awop-bop-a-loo-mop', 'zips', '--alop-bom-bom=cows'];
 
@@ -1151,7 +1150,7 @@ test.describe('Command server', () => {
             });
 
             test('invalid setting is specified', async() => {
-              const newSettings = { version: CURRENT_SETTINGS_VERSION, containerEngine: { name: 'beefalo' } };
+              const newSettings = { containerEngine: { name: 'beefalo' } };
               const { stdout, stderr, error } = await rdctl(['api', 'settings', '-b', JSON.stringify(newSettings)]);
 
               expect({
