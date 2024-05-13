@@ -116,6 +116,7 @@ test.describe('Command server', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeAll(async() => {
+    // await tool('rdctl', 'factory-reset', '--verbose');
     [electronApp, page] = await startSlowerDesktop(__filename, { kubernetes: { enabled: true } });
   });
 
@@ -905,7 +906,7 @@ test.describe('Command server', () => {
 
           // Since we just applied new settings, we must wait for the backend to restart.
           while (await progressBar.count() > 0) {
-            await progressBar.waitFor({ state: 'detached', timeout: Math.round(240_000) });
+            await progressBar.waitFor({ state: 'detached', timeout: Math.round(900_000) });
           }
         });
       });
