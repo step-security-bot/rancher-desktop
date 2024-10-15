@@ -73,6 +73,9 @@ on:
     types:
     - 'created'
 
+permissions:
+  contents: read
+
 jobs:
   spelling:
     name: Check Spelling
@@ -90,9 +93,14 @@ jobs:
       # note: If you use only_check_changed_files, you do not want cancel-in-progress
       cancel-in-progress: true
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+      with:
+        egress-policy: audit
+
     - name: check-spelling
       id: spelling
-      uses: check-spelling/check-spelling@v0.0.22
+      uses: check-spelling/check-spelling@00c989c97749eb0cb2d256bdc55ac61b0096c6d3 # v0.0.22
       with:
         suppress_push_for_open_pull_request: 1
         checkout: true
@@ -146,8 +154,13 @@ jobs:
       group: spelling-update-${{ github.event.issue.number }}
       cancel-in-progress: false
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+      with:
+        egress-policy: audit
+
     - name: apply spelling updates
-      uses: check-spelling/check-spelling@v0.0.22
+      uses: check-spelling/check-spelling@00c989c97749eb0cb2d256bdc55ac61b0096c6d3 # v0.0.22
       with:
         experimental_apply_changes_via_bot: 1
         checkout: true

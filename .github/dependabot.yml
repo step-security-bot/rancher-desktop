@@ -137,3 +137,23 @@ updates:
     open-pull-requests-limit: 1
     labels: ["component/dependencies"]
     reviewers: [ "Nino-K" ]
+
+  - package-ecosystem: docker
+    directory: /bats/tests/compose/testdata/app
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /bats/tests/compose/testdata/app
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /bats/tests/extensions/testdata
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /pkg/rancher-desktop/sudo-prompt
+    schedule:
+      interval: daily
